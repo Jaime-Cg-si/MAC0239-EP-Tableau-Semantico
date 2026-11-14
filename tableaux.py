@@ -69,6 +69,37 @@ def classificar_tipo_regra_comp(fm):
         raise TypeError(f"Fórmula desconhecida: {f}")
 
 
+class Ramo:
+    def __init__(self):
+        self.pendentes = []
+        self.literais = {}
+        self.fechado = False
+
+    def contradicao(self, fm):
+        s, f = fm.sinal, fm.formula
+        return f.name in self.literais and s != self.literais[f.name]
+
+
+    def adicionar(self,fm):
+        s, f = fm.sinal, fm.formula
+        if isinstance(f, Variable):
+            if self.contradicao(fm):
+                self.fechado = True
+
+            else:
+                self.literais[f.name] = s
+        else:
+            self.pendentes.append(fm)
+
+    def copiar(self):
+        copia = Ramo()
+        copia.pendentes = self.pendentes.copy()
+        copia.literais = self.literais.copy()
+        copia.fechado = self.fechado
+        return copia
+
+    def __str__(self):
+        return 'pendentes: ' + str(self.pendentes) + ' | ' + 'literais: ' + str(self.literais) + ' | ' + 'fechado: ' + str(self.fechado)
 
 
 if __name__ == '__main__':
@@ -131,4 +162,65 @@ if __name__ == '__main__':
         acertos += 1
         print('ok    (T,P <=> Q) dá TypeError')
 
-    print(f'\n{acertos}/{len(testes) + 1} testes passaram')
+    print(f'\n{acertos}/{len(testes) + 1} testes de classificação passaram')
+
+    # -----------------------------------------------------------------
+    # Testes do Ramo (passos 3 e 4)
+    # -----------------------------------------------------------------
+    print('\n--- Ramo ---')
+
+    def T(f):
+        return FormulaMarcada(True, f)
+
+    def F(f):
+        return FormulaMarcada(False, f)
+
+    def ramo_com(fms):
+        """Cria um ramo vazio e adiciona, em ordem, as fórmulas marcadas da lista."""
+        r = Ramo()
+        for fm in fms:
+            r.adicionar(fm)
+        return r
+
+    # passo 3: separação entre literais e pendentes, e cópia independente
+    r1 = ramo_com([T(P >> Q), F(Q), T(P)])
+    r2 = r1.copiar()
+    r2.adicionar(T(R))
+    r2.adicionar(F(P | R))
+
+    # passo 4: fechamento
+    r3 = ramo_com([T(P)])
+    r4 = r3.copiar()
+    r4.adicionar(F(P))       # fecha só a cópia
+    r5 = ramo_com([T(P), F(P)])
+    r6 = r5.copiar()         # cópia de um ramo já fechado
+
+    # Cada teste: (descrição, valor obtido, valor esperado)
+    testes_ramo = [
+        ('original não muda quando a cópia muda', str(r1),
+         "pendentes: [(T,P => Q)] | literais: {'Q': False, 'P': True} | fechado: False"),
+        ('cópia recebe o que foi adicionado nela', str(r2),
+         "pendentes: [(T,P => Q), (F,P v R)] | literais: {'Q': False, 'P': True, 'R': True} | fechado: False"),
+        ('cópia tem lista própria',      r1.pendentes is r2.pendentes, False),
+        ('cópia tem dicionário próprio', r1.literais is r2.literais,   False),
+
+        ('mesmo sinal repetido não fecha (T P, F Q, T P)',
+         ramo_com([T(P), F(Q), T(P)]).fechado, False),
+        ('sinais opostos fecham (T P, F P)', r5.fechado, True),
+        ('compostas não fecham direto (T P>>Q, F P>>Q)',
+         ramo_com([T(P >> Q), F(P >> Q)]).fechado, False),
+        ('fechar a cópia não fecha o original', (r3.fechado, r4.fechado), (False, True)),
+        ('cópia de ramo fechado continua fechada', r6.fechado, True),
+    ]
+
+    acertos_ramo = 0
+    for descricao, obtido, esperado in testes_ramo:
+        if obtido == esperado:
+            acertos_ramo += 1
+            print('ok   ', descricao)
+        else:
+            print('ERRO ', descricao)
+            print('      esperado:', esperado)
+            print('      obtido:  ', obtido)
+
+    print(f'\n{acertos_ramo}/{len(testes_ramo)} testes do Ramo passaram')
