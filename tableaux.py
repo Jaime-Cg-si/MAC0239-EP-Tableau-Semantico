@@ -152,6 +152,11 @@ def provar(sequente):
     return (True, None, regras_aplicadas)
 
 
+def contra_exemplo(sequente, ramo):
+    valoracao = {}
+    for atomo in sorted(sequente.variables()):
+        valoracao[atomo] = ramo.literais.get(atomo, True) #por padrão, se o ramo não contém o literal, ele tem valor-livre, adota-se True
+    return valoracao
 
 
 if __name__ == '__main__':
