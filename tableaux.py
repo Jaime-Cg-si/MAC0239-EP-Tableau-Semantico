@@ -1,5 +1,6 @@
 from arquivos_enunciado.code_base_EP1 import *
 
+
 class FormulaMarcada():
     def __init__(self, sinal, formula):
         self.sinal = sinal
@@ -98,8 +99,56 @@ class Ramo:
         copia.fechado = self.fechado
         return copia
 
+    def escolher(self): #escolhe o que expandir
+        if not self.pendentes:
+            return None
+        for i, fm in enumerate(self.pendentes):
+            tipo, _, _ = classificar_tipo_regra_comp(fm)
+            if tipo == 'alpha':
+                return self.pendentes.pop(i)
+        #não tem nenhuma regra alpha
+        return self.pendentes.pop(0)
+
     def __str__(self):
         return 'pendentes: ' + str(self.pendentes) + ' | ' + 'literais: ' + str(self.literais) + ' | ' + 'fechado: ' + str(self.fechado)
+
+
+def provar(sequente):
+    ramo = Ramo()
+    for pre in sequente.premises:
+        fm = FormulaMarcada(True, pre)
+        ramo.adicionar(fm)
+
+    fm = FormulaMarcada(False, sequente.conclusion)
+    ramo.adicionar(fm)
+
+    pilha = [ramo]
+    while pilha:
+        ramo_vez = pilha.pop()
+
+        if ramo_vez.fechado:
+            continue
+
+        fm = ramo_vez.escolher()
+
+        if fm is None:
+            #o ramo terminou aberto, logo a validade é falsa
+            return (False, ramo_vez)
+
+        tipo, regra, comps = classificar_tipo_regra_comp(fm)
+        if tipo == 'alpha':
+            for comp in comps:
+                ramo_vez.adicionar(comp)
+            pilha.append(ramo_vez)
+        else:
+            for comp in comps:
+                copia = ramo_vez.copiar()
+                copia.adicionar(comp)
+                pilha.append(copia)
+
+    return (True, None)
+
+
 
 
 if __name__ == '__main__':
@@ -224,3 +273,47 @@ if __name__ == '__main__':
             print('      obtido:  ', obtido)
 
     print(f'\n{acertos_ramo}/{len(testes_ramo)} testes do Ramo passaram')
+
+    # -----------------------------------------------------------------
+    # Testes do escolher (passo 5): α antes de β
+    # -----------------------------------------------------------------
+    print('\n--- escolher ---')
+
+    # caso do roteiro: β, α, α -> as duas α saem primeiro, na ordem da lista
+    r7 = ramo_com([T(P | Q), T(P & Q), F(P >> Q)])
+    escolhas_r7 = [str(r7.escolher()) for _ in range(4)]
+
+    # só β: saem na ordem em que entraram
+    r8 = ramo_com([T(P | Q), T(P >> Q)])
+    escolhas_r8 = [str(r8.escolher()) for _ in range(2)]
+
+    # negação conta como α, inclusive a β¬ (F ~C)
+    r9 = ramo_com([T(P | Q), F(~P)])
+    primeira_r9 = str(r9.escolher())
+
+    # escolher não mexe nos literais nem no fechado
+    r10 = ramo_com([T(P), F(Q), T(P & R)])
+    r10.escolher()
+
+    testes_escolher = [
+        ('α antes de β, depois None quando esvazia', escolhas_r7,
+         ['(T,P ^ Q)', '(F,P => Q)', '(T,P v Q)', 'None']),
+        ('pendentes fica vazia no final',  r7.pendentes, []),
+        ('só β: sai a primeira da lista',  escolhas_r8, ['(T,P v Q)', '(T,P => Q)']),
+        ('F ~P é α e sai antes da β',      primeira_r9, '(F,¬P)'),
+        ('escolher tira só a fórmula escolhida', str(r10),
+         "pendentes: [] | literais: {'P': True, 'Q': False} | fechado: False"),
+        ('ramo vazio devolve None',        Ramo().escolher(), None),
+    ]
+
+    acertos_escolher = 0
+    for descricao, obtido, esperado in testes_escolher:
+        if obtido == esperado:
+            acertos_escolher += 1
+            print('ok   ', descricao)
+        else:
+            print('ERRO ', descricao)
+            print('      esperado:', esperado)
+            print('      obtido:  ', obtido)
+
+    print(f'\n{acertos_escolher}/{len(testes_escolher)} testes do escolher passaram')
