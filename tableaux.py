@@ -159,6 +159,39 @@ def contra_exemplo(sequente, ramo):
     return valoracao
 
 
+def imprimir_resultado(sequente):
+    resultado, ramo, regras = provar(sequente)
+
+    #exibição do sequente
+    premissas = sequente.premises
+    pre = [f'{p}' for p in premissas]
+
+    conclusao = sequente.conclusion
+    print('Sequente: ' + ', '.join(pre) + ' ⊢ ' + str(conclusao))
+    
+
+    #exibição do resultado
+    print("Resultado: " + ('VÁLIDO' if resultado else 'INVÁLIDO'))
+
+    #exibição do contra-exemplo (se houver)
+    if not resultado:
+        valoracao = contra_exemplo(sequente, ramo)
+        texto_valoracao = []
+
+        for atomo, valor in valoracao.items():
+            valor_atomo = f'{atomo} = {valor}'
+            if atomo not in ramo.literais:
+                valor_atomo = valor_atomo + ' (valor livre)'
+            texto_valoracao.append(valor_atomo)
+
+        print('Contra-exemplo: ' + ', '.join(texto_valoracao))
+
+    #exibição das regras
+    print('Regras: ' + (str(regras) if regras else 'NENHUMA REGRA UTILIZADA'))
+
+            
+
+
 if __name__ == '__main__':
     P, Q, R, S = vars('P', 'Q', 'R', 'S')  # cria os átomos uma vez só
 
