@@ -123,6 +123,8 @@ def provar(sequente):
     ramo.adicionar(fm)
 
     pilha = [ramo]
+    regras_aplicadas = []
+
     while pilha:
         ramo_vez = pilha.pop()
 
@@ -133,9 +135,10 @@ def provar(sequente):
 
         if fm is None:
             #o ramo terminou aberto, logo a validade é falsa
-            return (False, ramo_vez)
+            return (False, ramo_vez, regras_aplicadas)
 
         tipo, regra, comps = classificar_tipo_regra_comp(fm)
+        regras_aplicadas.append((regra, fm))
         if tipo == 'alpha':
             for comp in comps:
                 ramo_vez.adicionar(comp)
@@ -146,7 +149,7 @@ def provar(sequente):
                 copia.adicionar(comp)
                 pilha.append(copia)
 
-    return (True, None)
+    return (True, None, regras_aplicadas)
 
 
 
