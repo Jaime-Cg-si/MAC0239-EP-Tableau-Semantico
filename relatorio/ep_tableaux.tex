@@ -181,7 +181,53 @@ O programa \texttt{tableaux.py} disponibiliza três funções ao usuário:
 
 % 2.3. Sequentes para testar o programa ------------------------------
 \subsection{Sequentes para testar o programa}
-% TODO: Preencher com os testes
+Para testar o provador, usamos o script \texttt{testes.py}, com 20 sequentes: 14 válidos e 6 inválidos. Para rodar os testes, basta executar \texttt{python3 testes.py} no diretório do projeto. Os sequentes usados foram divididos nos seguintes grupos:
+
+\paragraph{Argumentos clássicos e conjunção com três filhos (válidos):}
+\begin{enumerate}
+    \item Modus Ponens: $P,\ P \rightarrow Q \vdash Q$.
+    \item Modus Tollens: $P \rightarrow Q,\ \neg Q \vdash \neg P$.
+    \item Silogismo Disjuntivo: $P \vee Q,\ \neg P \vdash Q$.
+    \item Silogismo Hipotético: $P \rightarrow Q,\ Q \rightarrow R \vdash P \rightarrow R$.
+    \item Lei de De Morgan: $\neg(P \wedge Q) \vdash \neg P \vee \neg Q$.
+    \item Conjunção com três filhos: $P \wedge Q \wedge R \vdash Q \wedge R$.
+\end{enumerate}
+
+\paragraph{Teoremas sem premissas (válidos):}
+\begin{enumerate}
+    \item Terceiro Excluído: $\vdash P \vee \neg P$.
+    \item Lei de Peirce: $\vdash ((P \rightarrow Q) \rightarrow P) \rightarrow P$.
+    \item Distributividade da disjunção sobre a conjunção:
+    $\vdash (P \vee (Q \wedge R)) \rightarrow ((P \vee Q) \wedge (P \vee R))$.
+\end{enumerate}
+
+\paragraph{Casos especiais e fórmulas compostas (válidos):}
+\begin{enumerate}
+    \item Identidade: $P \vdash P$, com fechamento imediato, sem aplicação de regras de expansão.
+    \item Princípio da Explosão: $P,\ \neg P \vdash Q$.
+    \item Dupla Negação: $\neg\neg P \vdash P$.
+    \item Disjunção com três filhos e aplicação de $\alpha$ antes de $\beta$:
+    $P \vee Q \vee R,\ (\neg P \wedge \neg Q) \vdash R$.
+    \item Fórmula composta com quatro átomos:
+    $((A \vee B) \rightarrow Q) \wedge \neg S,\ A \vdash Q \wedge \neg S$.
+\end{enumerate}
+
+\paragraph{Falácias e sequentes inválidos:}
+\begin{enumerate}
+    \item Afirmação do Consequente: $P \rightarrow Q,\ Q \vdash P$.
+    \item Negação do Antecedente: $P \rightarrow Q,\ \neg P \vdash \neg Q$.
+    \item Non Sequitur: $P \vdash Q$, com ramo aberto sem aplicação de regras de expansão.
+    \item Inferência indevida a partir de uma disjunção: $P \vee Q,\ P \vdash \neg Q$.
+    \item Contra-exemplo com átomo livre: $P \vee Q \vdash P \wedge R$.
+    \item Fórmula composta com quatro átomos:
+    $((A \vee B) \rightarrow Q) \wedge \neg S \vdash Q \wedge \neg S$.
+\end{enumerate}
+
+\paragraph{Verificação dos resultados:} para cada sequente, o script compara o resultado do provador com o resultado esperado e com a tabela-verdade do código-base. Para os sequentes inválidos, também verifica se o contra-exemplo torna todas as premissas verdadeiras e a conclusão falsa.
+
+\paragraph{Fórmulas fora da linguagem:} também testamos o bicondicional \texttt{P.iff(Q)}, a implicação reversa \texttt{P << Q} e a constante \texttt{True}. Nos três casos, o script verifica se o provador gera \texttt{TypeError}, pois essas fórmulas não fazem parte da linguagem do enunciado.
+
+\paragraph{Resultados obtidos:} os 20 sequentes passaram nos testes, incluindo a verificação dos contra-exemplos. Os três casos fora da linguagem geraram \texttt{TypeError} e todas as oito regras de expansão foram usadas.
 
 % 2.4. Estratégias usadas na implementação ---------------------------
 \subsection{Estratégias usadas na implementação}
