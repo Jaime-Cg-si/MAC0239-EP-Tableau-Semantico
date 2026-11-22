@@ -1,0 +1,219 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazilian]{babel}
+\usepackage[left=3cm,top=3cm,right=2cm,bottom=2cm]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{setspace}
+\usepackage[colorlinks=true, urlcolor=blue, linkcolor=blue]{hyperref}
+\usepackage{xurl}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{minted}
+\usepackage{dirtree}
+
+\setminted{linenos, frame=single, fontsize=\small, breaklines}
+\onehalfspacing
+
+\begin{document}
+
+\begin{titlepage}
+    \begin{center}
+        {\large \textbf{UNIVERSIDADE DE SÃO PAULO}} \\
+        {\large \textbf{INSTITUTO DE MATEMÁTICA, ESTATÍSTICA E CIÊNCIA DA COMPUTAÇÃO}} \\
+
+        \vspace{5cm}
+        \vfill
+
+        \begin{minipage}{0.8\textwidth}
+            \centering
+            {\Large \textbf{MAC0239 - EP1 - Relatório}} \\
+            \vspace{0.8cm}
+            {\large
+            Felipe Brancalhão Curcio (16985106),\\
+            Gabriela Kwong Yamaguti (16967502),\\
+            Isabela Suemi Aoki (15637975),\\
+            Jaime Cavalcanti Guedes (16875204),\\
+            Murilo Santos de Castro (17015895),\\
+            Yoonsik Hur (16905558)}
+        \end{minipage}
+
+        \vfill
+        \vfill
+
+        {\large São Paulo} \\
+        {\large 2026}
+    \end{center}
+
+    \vspace*{\fill}
+\end{titlepage}
+
+\newpage
+\tableofcontents
+\thispagestyle{empty}
+
+\newpage
+\pagenumbering{arabic}
+
+% 1. Introdução -----------------------------------------------------
+\section{Introdução}
+
+O presente trabalho teve como objetivo a criação de um provador de sequentes $A_1, \dots, A_n \vdash B$ do cálculo proposicional por \textit{tableaux} semântico, mostrando as regras \textit{alpha} e \textit{beta} aplicadas. Para cada sequente, o programa indica se ele é válido e, caso não seja, mostra um contra-exemplo.
+
+\noindent O método usado é o de refutação: as premissas são marcadas inicialmente como verdadeiras ($T$) e a conclusão como falsa ($F$), de forma que o programa tenta construir uma valoração que torne as premissas verdadeiras e a conclusão falsa. Se todos os ramos fecham, essa valoração não existe e, portanto, o sequente é válido. Caso algum ramo termine aberto e totalmente expandido, ele fornece um contra-exemplo.
+
+\noindent A linguagem aceita contém os conectivos $\neg$, $\wedge$, $\vee$ e $\rightarrow$, escritos em Python como \texttt{\textasciitilde}, \texttt{\&}, \texttt{|} e \texttt{>>}.
+
+% 2. Desenvolvimento ------------------------------------------------
+\section{Desenvolvimento}
+
+% 2.1. Como utilizar o script ---------------------------------------
+\subsection{Como utilizar o script}
+
+Para usar o provador, é necessário ter Python 3 instalado (testado com Python 3.13). Não há outras dependências externas. Além disso, usamos a seguinte estrutura de diretórios (com uma estrutura diferente, as importações podem ficar incorretas):
+
+\dirtree{%
+.1 meu\_projeto.
+.2 tableaux.py \hfill \texttt{\# implementação do provador}.
+.2 arquivos\_enunciado.
+.3 code\_base\_EP1.py \hfill \texttt{\# código-base fornecido}.
+.3 code\_base\_EP1\_demo.py \hfill \texttt{\# exemplos de uso do código-base}.
+.3 ep\_tableaux.pdf \hfill \texttt{\# enunciado}.
+.2 relatorio.
+}
+
+\bigskip
+\noindent Para testar o provador, há duas maneiras:
+
+\begin{enumerate}
+    \item Criar um novo script que chame as funções disponíveis em \texttt{tableaux.py}, como no exemplo abaixo:
+
+\begin{minted}{python}
+from tableaux import *
+
+# todos os átomos usados precisam ser criados
+P, Q, R = vars('P', 'Q', 'R')
+
+imprimir_resultado(ArgumentForm(P, P >> Q, conclusion=Q))   # P, P -> Q |- Q
+imprimir_resultado(ArgumentForm(P >> Q, Q, conclusion=P))   # P -> Q, Q |- P
+imprimir_resultado(ArgumentForm(conclusion=P | ~P))         # |- P v ~P (sem premissas)
+\end{minted}
+
+    Saída dos dois primeiros sequentes (os símbolos $\vdash$, $\beta$ e $\rightarrow$ são os que o programa imprime):
+
+\begin{minted}[escapeinside=||]{text}
+Sequente: P, P => Q |$\vdash$| Q
+Resultado: VÁLIDO
+Regras: [('|$\beta\rightarrow$|', (T,P => Q))]
+
+Sequente: P => Q, Q |$\vdash$| P
+Resultado: INVÁLIDO
+Contra-exemplo: P = False, Q = True
+Regras: [('|$\beta\rightarrow$|', (T,P => Q))]
+\end{minted}
+
+    \item Rodar os testes unitários com \texttt{python tableaux.py}.
+\end{enumerate}
+
+\paragraph{Conectivos.}
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Notação da aula} & \textbf{No Python} \\
+\midrule
+$\neg A$ & \texttt{\textasciitilde A} \\
+$A \wedge B$ & \texttt{A \& B} \\
+$A \vee B$ & \texttt{A | B} \\
+$A \rightarrow B$ & \texttt{A >> B} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Cuidados ao escrever sequentes:}
+\begin{itemize}
+    \item No Python, \texttt{>>} tem prioridade sobre \texttt{\&} e \texttt{|}. Assim, \texttt{P \& Q >> R} significa \texttt{P \& (Q >> R)}, e não \texttt{(P \& Q) >> R}. Deve-se colocar parênteses em volta de toda implicação.
+    \item \texttt{R = vars('R')} devolve um gerador, e não um átomo. Deve-se usar \texttt{R, = vars('R')} (com a vírgula) ou criar todos os átomos de uma vez.
+    \item Apenas \texttt{\textasciitilde}, \texttt{\&}, \texttt{|} e \texttt{>>} fazem parte da linguagem do enunciado. Outros tipos do código-base (\texttt{<=>}, \texttt{<<} e constantes) geram \texttt{TypeError}.
+\end{itemize}
+
+% 2.2. Estrutura interna do programa ---------------------------------
+\subsection{Estrutura interna do programa}
+
+O programa \texttt{tableaux.py} disponibiliza três funções ao usuário:
+\begin{itemize}
+    \item \texttt{imprimir\_resultado(sequente)}: imprime o sequente, se ele é válido, o contra-exemplo (se houver) e as regras usadas;
+
+    \item \texttt{provar(sequente)}: retorna a tripla \texttt{(valido, ramo, regras)}, em que \texttt{valido} é do tipo booleano (\texttt{True}/\texttt{False}), \texttt{ramo} é o ramo aberto (ou \texttt{None}, se o sequente é válido) e \texttt{regras} é a lista \texttt{[(regra, fórmula marcada), ...]}. O funcionamento segue os passos:
+    \begin{itemize}
+        \item Cria o ramo inicial, com as premissas marcadas como verdadeiras e a conclusão marcada como falsa, e o coloca na pilha de ramos;
+        \item Em cada iteração, é retirado um ramo da pilha e, se ele estiver fechado, é descartado;
+        \item Chama \texttt{escolher()} para obter a próxima fórmula a expandir. Se não houver nenhuma, o ramo está aberto e totalmente expandido, então o sequente é inválido e esse ramo é devolvido como contra-exemplo;
+        \item Caso contrário, classifica a fórmula, registra a regra em \texttt{regras} e aplica a regra: se for $\alpha$, adiciona os componentes ao próprio ramo e o devolve à pilha; se for $\beta$, cria uma cópia do ramo para cada componente, adiciona o componente à cópia e empilha as cópias;
+        \item Se a pilha esvazia, todos os ramos fecharam e o sequente é válido.
+    \end{itemize}
+
+    \item \texttt{contra\_exemplo(sequente, ramo)}: retorna um dicionário \texttt{\{átomo: valor\}} com todos os átomos do sequente, somente para sequentes inválidos. Átomos que não aparecem no ramo aberto recebem \texttt{True} (valor livre).
+\end{itemize}
+
+\noindent Internamente, a função \texttt{classificar\_tipo\_regra\_comp(FormulaMarcada)} recebe uma fórmula marcada e retorna a tripla \texttt{(tipo, regra, componentes)}, em que:
+\begin{itemize}
+    \item \texttt{tipo} indica como usar os componentes: \texttt{alpha} (todos valem ao mesmo tempo, no mesmo ramo), \texttt{beta} (o ramo se divide, um para cada componente) ou \texttt{literal} (átomo, que não pode ser decomposto);
+    \item \texttt{regra} é o rótulo que aparece na saída, como \texttt{'$\alpha\rightarrow$'};
+    \item \texttt{componentes} é a lista de novas fórmulas marcadas produzidas pela regra.
+\end{itemize}
+
+\noindent Além disso, o programa conta com as seguintes estruturas:
+\begin{itemize}
+    \item \texttt{FormulaMarcada}: par \texttt{(sinal, fórmula)}, em que \texttt{True} representa $T$ e \texttt{False} representa $F$. Inicialmente, cada premissa é $(T, \text{premissa})$ e a conclusão é $(F, \text{conclusão})$.
+
+    \item \texttt{Ramo}: guarda a lista de fórmulas marcadas compostas ainda pendentes (\texttt{pendentes}), o dicionário \texttt{\{átomo: sinal\}} com os literais encontrados (\texttt{literais}) e o booleano \texttt{fechado} (\texttt{True} se o ramo contém uma contradição). Essa classe possui três métodos principais:
+    \begin{itemize}
+        \item \texttt{adicionar(FormulaMarcada)}: separa o que entra. Se for um átomo, vai para \texttt{literais} e, se esse átomo já existir com o sinal oposto, o ramo é fechado. Se for composta, vai para \texttt{pendentes};
+        \item \texttt{copiar()}: cria um novo ramo com lista e dicionário próprios, de modo que alterar a cópia não afeta o original;
+        \item \texttt{escolher()}: remove e devolve o próximo pendente a expandir, preferindo as regras $\alpha$. Se não há pendentes, devolve \texttt{None}.
+    \end{itemize}
+
+    \item Pilha de ramos: lista usada como pilha (LIFO) em \texttt{provar}, que guarda os ramos ainda não examinados e resulta em uma busca em profundidade.
+
+    \item Lista de regras aplicadas: guarda os pares \texttt{(regra, fórmula marcada)} na ordem de aplicação, cobrindo todos os ramos visitados.
+\end{itemize}
+
+% 2.3. Sequentes para testar o programa ------------------------------
+\subsection{Sequentes para testar o programa}
+% TODO: Preencher com os testes
+
+% 2.4. Estratégias usadas na implementação ---------------------------
+\subsection{Estratégias usadas na implementação}
+
+\paragraph{Refutação:} para decidir $A_1,\dots,A_n \vdash B$, o programa marca as premissas como $T$ e a conclusão como $F$, procurando uma valoração para essas fórmulas. Se todos os ramos fecham, o sequente é válido. Caso algum ramo termine aberto e totalmente expandido, o sequente é inválido, gerando o contra-exemplo.
+
+\paragraph{Escolha da regra em um ramo:} o método \texttt{escolher} aplica as regras $\alpha$ antes das $\beta$. Como as regras $\alpha$ não ramificam, adiar as regras $\beta$ evita expandir as mesmas fórmulas em vários ramos. Assim, muitos ramos fecham antes de se dividirem.
+
+\paragraph{Escolha do ramo:} os ramos pendentes ficam em uma pilha (LIFO), o que equivale a uma busca em profundidade. O algoritmo para no primeiro ramo aberto e completamente expandido, pois já basta ele para exibir um contra-exemplo.
+
+\paragraph{Fechamento do ramo:} ao adicionar um literal, verifica-se se o mesmo átomo já está no ramo com o sinal oposto. Os literais ficam em um dicionário \texttt{\{átomo: sinal\}}, o que torna essa verificação imediata. Fórmulas compostas contraditórias fecham o ramo apenas depois de expandidas.
+
+\paragraph{Negação:} na tabela do enunciado, $F\ \neg C$ tem $\beta_1=\beta_2=T\ C$. Dividir o ramo criaria dois ramos idênticos, então a negação é tratada como $\alpha$ nos dois sinais. O nome \texttt{$\beta\neg$} é mantido no registro de regras para coincidir com a tabela.
+
+\paragraph{Conjunções e disjunções com $n$ filhos:} o código-base transforma \texttt{P \& Q \& R} em um único \texttt{And} com três filhos. As regras foram generalizadas: $T\ (A_1\wedge\dots\wedge A_n)$ adiciona os $n$ componentes ao mesmo ramo, e $F\ (A_1\wedge\dots\wedge A_n)$ abre $n$ ramos. O mesmo vale para $\vee$, com os papéis de $\alpha$ e $\beta$ trocados.
+
+\paragraph{Ramificação:} em uma regra $\beta$, cada componente é adicionado a uma \textbf{cópia} do ramo atual, com lista e dicionário próprios. Assim, alterar um ramo não afeta os outros.
+
+\paragraph{Contra-exemplo:} átomos do sequente que não aparecem no ramo não influenciam a refutação, então recebem \texttt{True} e são exibidos como \textit{valor livre}.
+
+\paragraph{Registro de regras:} uma lista única guarda pares \texttt{(regra, fórmula marcada)} na ordem de aplicação, cobrindo todos os ramos visitados. Em sequentes inválidos, ela termina no primeiro ramo aberto encontrado.
+
+% 2.5. Dificuldades encontradas --------------------------------------
+\subsection{Dificuldades encontradas}
+\begin{itemize}
+    \item \textbf{Precedência de operadores no Python:} o operador \texttt{>>} tem prioridade maior que \texttt{\&} e \texttt{|}, então \texttt{P \& Q >> R} significa \texttt{P \& (Q >> R)}, e não \texttt{(P \& Q) >> R}. Isso gerou sequentes diferentes dos pretendidos. Resolvemos exigindo parênteses em toda implicação e criando um teste para esse caso.
+    \item \textbf{Criação de um único átomo:} \texttt{R = vars('R')} devolve um gerador, não um átomo. É preciso escrever \texttt{R, = vars('R')} ou criar todos os átomos de uma vez.
+    \item \textbf{Regra $\beta\neg$:} decidir como representar $F\ \neg C$. Dividir em dois ramos idênticos seria redundante, então o tipo foi tratado como $\alpha$ e o nome da regra foi mantido.
+\end{itemize}
+
+% 3. Conclusão --------------------------------------------------------
+\section{Conclusão}
+O provador implementa o método de \textit{tableaux} semântico para lógica proposicional, decidindo a validade de qualquer sequente da linguagem aceita, exibindo as regras aplicadas e, quando o sequente é inválido, apresentando um contra-exemplo. A priorização das regras $\alpha$ e a busca em profundidade ajudam na eficiência do método.
+
+\end{document}
