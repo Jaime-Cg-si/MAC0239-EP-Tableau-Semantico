@@ -1,0 +1,142 @@
+
+=== Classicos (validos) ===
+
+[1/20] Modus Ponens
+Sequente: P, P => Q ⊢ Q
+Resultado: VÁLIDO
+Regras: [('β→', (T,P => Q))]
+Verificacao: OK (VALIDO, compativel com tabela-verdade)
+
+[2/20] Modus Tollens
+Sequente: P => Q, ¬Q ⊢ ¬P
+Resultado: VÁLIDO
+Regras: [('α¬', (T,¬Q)), ('β¬', (F,¬P)), ('β→', (T,P => Q))]
+Verificacao: OK (VALIDO, compativel com tabela-verdade)
+
+[3/20] Silogismo Disjuntivo
+Sequente: P v Q, ¬P ⊢ Q
+Resultado: VÁLIDO
+Regras: [('α¬', (T,¬P)), ('β∨', (T,P v Q))]
+Verificacao: OK (VALIDO, compativel com tabela-verdade)
+
+[4/20] Silogismo Hipotetico
+Sequente: P => Q, Q => R ⊢ P => R
+Resultado: VÁLIDO
+Regras: [('α→', (F,P => R)), ('β→', (T,P => Q)), ('β→', (T,Q => R))]
+Verificacao: OK (VALIDO, compativel com tabela-verdade)
+
+[5/20] Lei de De Morgan
+Sequente: ¬(P ^ Q) ⊢ ¬P v ¬Q
+Resultado: VÁLIDO
+Regras: [('α¬', (T,¬(P ^ Q))), ('α∨', (F,¬P v ¬Q)), ('β¬', (F,¬P)), ('β¬', (F,¬Q)), ('β∧', (F,P ^ Q))]
+Verificacao: OK (VALIDO, compativel com tabela-verdade)
+
+[6/20] Conjuncao n-aria (3 filhos)
+Sequente: P ^ Q ^ R ⊢ Q ^ R
+Resultado: VÁLIDO
+Regras: [('α∧', (T,P ^ Q ^ R)), ('β∧', (F,Q ^ R))]
+Verificacao: OK (VALIDO, compativel com tabela-verdade)
+
+=== Teoremas sem premissas ===
+
+[7/20] Terceiro Excluido
+Sequente:  ⊢ P v ¬P
+Resultado: VÁLIDO
+Regras: [('α∨', (F,P v ¬P)), ('β¬', (F,¬P))]
+Verificacao: OK (VALIDO, compativel com tabela-verdade)
+
+[8/20] Lei de Peirce
+Sequente:  ⊢ ((P => Q) => P) => P
+Resultado: VÁLIDO
+Regras: [('α→', (F,((P => Q) => P) => P)), ('β→', (T,(P => Q) => P)), ('α→', (F,P => Q))]
+Verificacao: OK (VALIDO, compativel com tabela-verdade)
+
+[9/20] Distributividade (∨ sobre ∧)
+Sequente:  ⊢ (P v (Q ^ R)) => ((P v Q) ^ (P v R))
+Resultado: VÁLIDO
+Regras: [('α→', (F,(P v (Q ^ R)) => ((P v Q) ^ (P v R)))), ('β∨', (T,P v (Q ^ R))), ('α∧', (T,Q ^ R)), ('β∧', (F,(P v Q) ^ (P v R))), ('α∨', (F,P v R)), ('α∨', (F,P v Q)), ('β∧', (F,(P v Q) ^ (P v R))), ('α∨', (F,P v R)), ('α∨', (F,P v Q))]
+Verificacao: OK (VALIDO, compativel com tabela-verdade)
+
+=== Casos de borda e compostos ===
+
+[10/20] Identidade (fechamento imediato, sem regras)
+Sequente: P ⊢ P
+Resultado: VÁLIDO
+Regras: NENHUMA REGRA UTILIZADA
+Verificacao: OK (VALIDO, compativel com tabela-verdade)
+
+[11/20] Principio da Explosao (premissas contraditorias)
+Sequente: P, ¬P ⊢ Q
+Resultado: VÁLIDO
+Regras: [('α¬', (T,¬P))]
+Verificacao: OK (VALIDO, compativel com tabela-verdade)
+
+[12/20] Dupla Negacao
+Sequente: ¬¬P ⊢ P
+Resultado: VÁLIDO
+Regras: [('α¬', (T,¬¬P)), ('β¬', (F,¬P))]
+Verificacao: OK (VALIDO, compativel com tabela-verdade)
+
+[13/20] Disjuncao n-aria e prioridade α antes de β
+Sequente: P v Q v R, ¬P ^ ¬Q ⊢ R
+Resultado: VÁLIDO
+Regras: [('α∧', (T,¬P ^ ¬Q)), ('α¬', (T,¬P)), ('α¬', (T,¬Q)), ('β∨', (T,P v Q v R))]
+Verificacao: OK (VALIDO, compativel com tabela-verdade)
+
+[14/20] Formula composta com 4 atomos (valida)
+Sequente: ((A v B) => Q) ^ ¬S, A ⊢ Q ^ ¬S
+Resultado: VÁLIDO
+Regras: [('α∧', (T,((A v B) => Q) ^ ¬S)), ('α¬', (T,¬S)), ('β∧', (F,Q ^ ¬S)), ('β¬', (F,¬S)), ('β→', (T,(A v B) => Q)), ('α∨', (F,A v B))]
+Verificacao: OK (VALIDO, compativel com tabela-verdade)
+
+=== Falacias e invalidos ===
+
+[15/20] Afirmacao do Consequente
+Sequente: P => Q, Q ⊢ P
+Resultado: INVÁLIDO
+Contra-exemplo: P = False, Q = True
+Regras: [('β→', (T,P => Q))]
+Verificacao: OK (INVALIDO, compativel com tabela-verdade)
+
+[16/20] Negacao do Antecedente
+Sequente: P => Q, ¬P ⊢ ¬Q
+Resultado: INVÁLIDO
+Contra-exemplo: P = False, Q = True
+Regras: [('α¬', (T,¬P)), ('β¬', (F,¬Q)), ('β→', (T,P => Q))]
+Verificacao: OK (INVALIDO, compativel com tabela-verdade)
+
+[17/20] Non Sequitur (sem regras)
+Sequente: P ⊢ Q
+Resultado: INVÁLIDO
+Contra-exemplo: P = True, Q = False
+Regras: NENHUMA REGRA UTILIZADA
+Verificacao: OK (INVALIDO, compativel com tabela-verdade)
+
+[18/20] Falacia do Terceiro Excluido
+Sequente: P v Q, P ⊢ ¬Q
+Resultado: INVÁLIDO
+Contra-exemplo: P = True, Q = True
+Regras: [('β¬', (F,¬Q)), ('β∨', (T,P v Q))]
+Verificacao: OK (INVALIDO, compativel com tabela-verdade)
+
+[19/20] Contra-exemplo com atomo livre
+Sequente: P v Q ⊢ P ^ R
+Resultado: INVÁLIDO
+Contra-exemplo: P = True (valor livre), Q = True, R = False
+Regras: [('β∨', (T,P v Q)), ('β∧', (F,P ^ R))]
+Verificacao: OK (INVALIDO, compativel com tabela-verdade)
+
+[20/20] Formula composta com 4 atomos (invalida)
+Sequente: ((A v B) => Q) ^ ¬S ⊢ Q ^ ¬S
+Resultado: INVÁLIDO
+Contra-exemplo: A = False, B = False, Q = False, S = False
+Regras: [('α∧', (T,((A v B) => Q) ^ ¬S)), ('α¬', (T,¬S)), ('β∧', (F,Q ^ ¬S)), ('β¬', (F,¬S)), ('β→', (T,(A v B) => Q)), ('α∨', (F,A v B))]
+Verificacao: OK (INVALIDO, compativel com tabela-verdade)
+
+=== Erros de linguagem (TypeError) ===
+ok   3/3 formulas fora da linguagem lancaram TypeError
+
+=== Resumo ===
+Sequentes aprovados: 20/20
+Erros de linguagem (TypeError): 3/3
+Regras exercitadas: 8/8 (α¬, α→, α∧, α∨, β¬, β→, β∧, β∨)
